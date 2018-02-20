@@ -155,14 +155,15 @@ class StackedAutoEncoder:
         tf.reset_default_graph()
         input_dim = len(data_x[0])
         sess = tf.Session()
-        x = tf.placeholder(dtype=tf.float32, shape=[None, input_dim], name='x')
-        x_ = tf.placeholder(dtype=tf.float32, shape=[None, input_dim], name='x_')
-        encode = {'weights': tf.Variable(tf.truncated_normal([input_dim, hidden_dim], dtype=tf.float32), name='enc_weights'),
+        with tf.device('/device:GPU:0'):
+            x = tf.placeholder(dtype=tf.float32, shape=[None, input_dim], name='x')
+            x_ = tf.placeholder(dtype=tf.float32, shape=[None, input_dim], name='x_')
+            encode = {'weights': tf.Variable(tf.truncated_normal([input_dim, hidden_dim], dtype=tf.float32), name='enc_weights'),
                   'biases': tf.Variable(tf.truncated_normal([hidden_dim], dtype=tf.float32), name='enc_biases')}
-        decode = {'biases': tf.Variable(tf.truncated_normal([input_dim], dtype=tf.float32), name='dec_biases'),
+            decode = {'biases': tf.Variable(tf.truncated_normal([input_dim], dtype=tf.float32), name='dec_biases'),
                   'weights': tf.transpose(encode['weights'], name='dec_weights')}
-        encoded = self.activate(tf.matmul(x, encode['weights']) + encode['biases'], activation)
-        decoded = tf.add(tf.matmul(encoded, decode['weights']), decode['biases'], name='decoded')
+            encoded = self.activate(tf.matmul(x, encode['weights']) + encode['biases'], activation)
+            decoded = tf.add(tf.matmul(encoded, decode['weights']), decode['biases'], name='decoded')
 
         # reconstruction loss
         if loss == 'rmse':
